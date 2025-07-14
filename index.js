@@ -1,8 +1,8 @@
 // index.js
-var express = require("express");
-var app = express();
+const express = require("express");
+const app = express();
+const cors = require("cors");
 
-var cors = require("cors");
 app.use(cors({ optionsSuccessStatus: 200 }));
 app.use(express.static("public"));
 
@@ -14,30 +14,38 @@ app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
 });
 
-app.get("/api/:date?", (req, res) => {
-  const dateParam = req.params.date;
+// 1. Route for empty /api → return current time
+app.get("/api", (req, res) => {
+  const now = new Date();
+  res.json({
+    unix: now.getTime(),
+    utc: now.toUTCString(),
+  });
+});
 
-  let date;
+// 2. Route for /api/:date
+app.get("/api/:date", (req, res) => {
+  const { date } = req.params;
+  let parsedDate;
 
-  if (!dateParam) {
-    date = new Date();
-  } else if (/^\d+$/.test(dateParam)) {
-    // Handle timestamp in milliseconds
-    date = new Date(parseInt(dateParam));
+  // If it's a timestamp in milliseconds
+  if (/^\d+$/.test(date)) {
+    parsedDate = new Date(parseInt(date));
   } else {
-    date = new Date(dateParam);
+    parsedDate = new Date(date);
   }
 
-  if (date.toString() === "Invalid Date") {
+  if (parsedDate.toString() === "Invalid Date") {
     return res.json({ error: "Invalid Date" });
   }
 
   res.json({
-    unix: date.getTime(),
-    utc: date.toUTCString()
+    unix: parsedDate.getTime(),
+    utc: parsedDate.toUTCString(),
   });
 });
 
-var listener = app.listen(process.env.PORT || 3000, function () {
-  console.log("Your app is listening on port " + listener.address().port);
+// Listen on port
+const listener = app.listen(process.env.PORT || 3000, function () {
+  console.log("App listening on port " + listener.address().port);
 });
