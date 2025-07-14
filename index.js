@@ -1,51 +1,55 @@
-// index.js
 const express = require("express");
-const app = express();
 const cors = require("cors");
+const app = express();
 
+// Enable CORS for FCC testing
 app.use(cors({ optionsSuccessStatus: 200 }));
+
+// Serve static files
 app.use(express.static("public"));
 
-app.get("/", function (req, res) {
+// Serve index.html
+app.get("/", (req, res) => {
   res.sendFile(__dirname + "/views/index.html");
 });
 
-app.get("/api/hello", function (req, res) {
+// Basic hello API
+app.get("/api/hello", (req, res) => {
   res.json({ greeting: "hello API" });
 });
 
-// 1. Route for empty /api → return current time
+// Handle /api without date => return current time
 app.get("/api", (req, res) => {
-  const now = new Date();
+  const currentDate = new Date();
   res.json({
-    unix: now.getTime(),
-    utc: now.toUTCString(),
+    unix: currentDate.getTime(),
+    utc: currentDate.toUTCString()
   });
 });
 
-// 2. Route for /api/:date
+// Handle /api/:date
 app.get("/api/:date", (req, res) => {
-  const { date } = req.params;
-  let parsedDate;
+  let dateParam = req.params.date;
+  let date;
 
-  // If it's a timestamp in milliseconds
-  if (/^\d+$/.test(date)) {
-    parsedDate = new Date(parseInt(date));
+  // If it's only digits, treat as Unix timestamp
+  if (/^\d+$/.test(dateParam)) {
+    date = new Date(parseInt(dateParam));
   } else {
-    parsedDate = new Date(date);
+    date = new Date(dateParam);
   }
 
-  if (parsedDate.toString() === "Invalid Date") {
+  if (date.toString() === "Invalid Date") {
     return res.json({ error: "Invalid Date" });
   }
 
   res.json({
-    unix: parsedDate.getTime(),
-    utc: parsedDate.toUTCString(),
+    unix: date.getTime(),
+    utc: date.toUTCString()
   });
 });
 
-// Listen on port
-const listener = app.listen(process.env.PORT || 3000, function () {
-  console.log("App listening on port " + listener.address().port);
+// Start server
+const listener = app.listen(process.env.PORT || 3000, () => {
+  console.log("Your app is listening on port " + listener.address().port);
 });
